@@ -1,0 +1,14 @@
+### Configure a variable for the web service base address.
+@base_address = http://localhost:8080/attempts
+
+POST {{base_address}}
+Content-Type: application/json
+
+{
+"factorA": 58,
+"factorB": 92,
+"userAlias":"moises",
+"guess":5400
+}
+###
+GET {{base_address}}?alias=moises

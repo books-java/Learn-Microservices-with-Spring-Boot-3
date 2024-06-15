@@ -1,0 +1,13 @@
+### Configure a variable for the web service base address.
+@base_address = http://localhost:8080/challenges/
+### Get first page of 10 products that are in stock and not discontinued.
+GET {{base_address}}random 
+### Get third page of 10 products that are in stock and not discontinued
+POST {{base_address}}attempts
+Content-Type: application/json
+
+{
+"factorA": 52,
+"factorB": 59,
+"userAlias":moises
+}
