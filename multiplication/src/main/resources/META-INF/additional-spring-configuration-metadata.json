@@ -1,5 +1,12 @@
-{"properties": [{
-  "name": "service.gamification.host",
-  "type": "java.lang.String",
-  "description": "A description for 'service.gamification.host'"
-}]}
+{"properties": [
+  {
+    "name": "service.gamification.host",
+    "type": "java.lang.String",
+    "description": "A description for 'service.gamification.host'"
+  },
+  {
+    "name": "amqp.exchange.attempts",
+    "type": "java.lang.String",
+    "description": "A description for 'amqp.exchange.attempts'"
+  }
+]}

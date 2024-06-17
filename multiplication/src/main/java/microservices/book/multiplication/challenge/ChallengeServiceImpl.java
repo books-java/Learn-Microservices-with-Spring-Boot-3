@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import microservices.book.multiplication.serviceclients.GamificationServiceClient;
+import microservices.book.multiplication.serviceclients.ChallengeEventPub;
 import microservices.book.multiplication.user.User;
 import microservices.book.multiplication.user.UserRepository;
 
@@ -17,7 +17,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
     private final UserRepository userRepository;
     private final ChallengeAttemptRepository attemptRepository;
-    private final GamificationServiceClient gameClient;
+    private final ChallengeEventPub challengeEventPub;
 
     @Override
     public ChallengeAttempt verifyAttempt(ChallengeAttemptDTO attemptDTO) {
@@ -42,9 +42,31 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         // Stores the attempt
         ChallengeAttempt storedAttempt = attemptRepository.save(checkedAttempt);
-        // Sends the attempt to gamification and prints the response
-        boolean status = gameClient.sendAttempt(storedAttempt);
-        log.info("Gamification service response: {}", status);
+        // Publishes an event to notify potentially interested subscribers
+        /*
+         * if brocker is down you’ll get an HTTP error response from the
+         * server since you didn’t catch any potential exception within the publisher,
+         * nor in the
+         * main service logic located at ChallengeServiceImpl. You could add a try/catch
+         * clause,
+         * so you are still able to respond. The strategy would be to suppress the error
+         * silently.
+         * A possibly better approach is to implement a custom HTTP error handler to
+         * return a
+         * specific error response such as 503 SERVICE UNAVAILABLE to indicate that the
+         * system is
+         * not operational when you lose connection with the broker. As you see, you
+         * have multiple
+         * options
+         * In a real organization, the best approach is to discuss these alternatives
+         * and
+         * choose the one that best suits your nonfunctional requirements, like
+         * availability (you
+         * want to have the challenge features available as much as possible) or data
+         * integrity (you
+         * want to always have a score for every sent attempt)
+         */
+        challengeEventPub.challengeSolved(storedAttempt);
 
         return storedAttempt;
     }
