@@ -53,6 +53,24 @@ filter to receive only correct attempts. As you see in Figure 7-12, you can have
 instances of the Gamification microservice consuming from the same queue. In this
 case, the broker will balance the load between all instances.
 
+## Gateway
+the Gateway act as follows:
+* Any request to or under http://localhost:8000/attempts will
+be proxied to the Multiplication microservice, deployed locally
+at http://localhost:8080/. The same will happen to other
+API contexts located in the same microservice, like challenges
+and users.
+* Requests to http://localhost:8000/leaders will be translated to
+requests to the Gamification microservice, which uses the same host
+(localhost) but the port 8081.
+* The DedupeResponseHeader default filter is used to remove
+duplicate response Access-Control-Allow-Origin headers. The
+RETAIN_UNIQUE filter parameter ensures that only one occurrence
+of the Access-Control-Allow-Origin response header is in the
+gateway response. Avoiding header duplication issues and providing
+consistent CORS-related headers is essential for client applications to
+be able to consume the services using the gateway.
+
 ## Modeling the Domain
 ![alt text](docs/domains.png)
 
@@ -104,11 +122,15 @@ challenge.
 
 # Run
 docker run -d --hostname multiplication-rabbit --name multiplication-rabbit -p 5672:5672  -p 15672:15672  rabbitmq:3-management
-guest/guest
+user/pass:guest/guest
+
 cd .\multiplication\     
 ./mvnw spring-boot:run
 
 cd .\gamification\
+./mvnw spring-boot:run
+
+cd .\gateway\
 ./mvnw spring-boot:run
 
 cd .\frontend\
@@ -122,6 +144,7 @@ http://localhost:8080/h2-console
 
 Fronend
 http://localhost:3000/
+
 # Testing
  1..10 | % {http --ignore-stdin POST :8080/attempts factorA=15 factorB=20 userAlias=test1 guess=300}      
  1..10 | % {http --ignore-stdin POST :8080/attempts factorA=15 factorB=20 userAlias=test-g-down guess=300}

@@ -1,0 +1,46 @@
+server:
+  port: 8000
+
+spring:
+  cloud:
+    #   the Gateway act as follows:
+    # • Any request to or under http://localhost:8000/attempts will
+    # be proxied to the Multiplication microservice, deployed locally
+    # at http://localhost:8080/. The same will happen to other
+    # API contexts located in the same microservice, like challenges
+    # and users.
+    # • Requests to http://localhost:8000/leaders will be translated to
+    # requests to the Gamification microservice, which uses the same host
+    # (localhost) but the port 8081.
+    # • The DedupeResponseHeader default filter is used to remove
+    # duplicate response Access-Control-Allow-Origin headers. The
+    # RETAIN_UNIQUE filter parameter ensures that only one occurrence
+    # of the Access-Control-Allow-Origin response header is in the
+    # gateway response. Avoiding header duplication issues and providing
+    # consistent CORS-related headers is essential for client applications to
+    # be able to consume the services using the gateway.
+    gateway:
+      routes:
+        - id: multiplication
+          uri: http://localhost:8080/
+          predicates:
+            - Path=/challenges/**,/attempts,/attempts/**,/users/**
+        - id: gamification
+          uri: http://localhost:8081/
+          predicates:
+            - Path=/leaders
+      globalcors:
+        cors-configurations:
+          "[/**]":
+            allowedOrigins: "http://localhost:3000"
+            allowedHeaders: "*"
+            allowedMethods:
+              - "GET"
+              - "POST"
+              - "OPTIONS"
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+# Uncomment the configuration below if you want to enable route matching logs
+logging:
+ level:
+   org.springframework.cloud.gateway.handler.predicate: trace
