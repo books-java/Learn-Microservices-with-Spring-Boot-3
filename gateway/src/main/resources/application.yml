@@ -1,46 +1,40 @@
 server:
   port: 8000
-
 spring:
+  application:
+    name: gateway
   cloud:
-    #   the Gateway act as follows:
-    # • Any request to or under http://localhost:8000/attempts will
-    # be proxied to the Multiplication microservice, deployed locally
-    # at http://localhost:8080/. The same will happen to other
-    # API contexts located in the same microservice, like challenges
-    # and users.
-    # • Requests to http://localhost:8000/leaders will be translated to
-    # requests to the Gamification microservice, which uses the same host
-    # (localhost) but the port 8081.
-    # • The DedupeResponseHeader default filter is used to remove
-    # duplicate response Access-Control-Allow-Origin headers. The
-    # RETAIN_UNIQUE filter parameter ensures that only one occurrence
-    # of the Access-Control-Allow-Origin response header is in the
-    # gateway response. Avoiding header duplication issues and providing
-    # consistent CORS-related headers is essential for client applications to
-    # be able to consume the services using the gateway.
+    loadbalancer:
+      ribbon:
+        enabled: false
+      consul:
+        enabled: true
+      discovery:
+        query-passing: true
     gateway:
       routes:
         - id: multiplication
-          uri: http://localhost:8080/
+          uri: lb://multiplication/
           predicates:
-            - Path=/challenges/**,/attempts,/attempts/**,/users/**
+            - Path=/challenges/**,/attempts/**,/users/**
         - id: gamification
-          uri: http://localhost:8081/
+          uri: lb://gamification/
           predicates:
             - Path=/leaders
       globalcors:
         cors-configurations:
           "[/**]":
-            allowedOrigins: "http://localhost:3000"
+            allowedOrigins: http://localhost:3000
             allowedHeaders: "*"
             allowedMethods:
-              - "GET"
-              - "POST"
-              - "OPTIONS"
+              - GET
+              - POST
+              - OPTIONS
       default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
-# Uncomment the configuration below if you want to enable route matching logs
+        - name: Retry
+          args:
+            retries: 3
+            methods: GET,POST
 logging:
- level:
-   org.springframework.cloud.gateway.handler.predicate: trace
+  level:
+    "[org.springframework.cloud.gateway.handler.predicate]": trace

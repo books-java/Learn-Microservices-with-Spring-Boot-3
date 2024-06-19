@@ -121,8 +121,11 @@ challenge.
 * Maven 3
 
 # Run
+RabbitMQ 
 docker run -d --hostname multiplication-rabbit --name multiplication-rabbit -p 5672:5672  -p 15672:15672  rabbitmq:3-management
-user/pass:guest/guest
+
+Consul
+docker run -d -p 8500:8500 -p 8600:8600/udp  --name=multiplication-consul  hashicorp/consul
 
 cd .\multiplication\     
 ./mvnw spring-boot:run
@@ -138,6 +141,11 @@ npm install
 npm start
 
 # URLS
+Consul
+http://localhost:8500/
+RabbitMQ 
+http://localhost:15672/
+user/pass:guest/guest
 Backend
 DB test
 http://localhost:8080/h2-console
@@ -146,5 +154,11 @@ Fronend
 http://localhost:3000/
 
 # Testing
+Consul
+http -b :8500/v1/agent/services
+
+http :8080/actuator/health
+
+
  1..10 | % {http --ignore-stdin POST :8080/attempts factorA=15 factorB=20 userAlias=test1 guess=300}      
  1..10 | % {http --ignore-stdin POST :8080/attempts factorA=15 factorB=20 userAlias=test-g-down guess=300}

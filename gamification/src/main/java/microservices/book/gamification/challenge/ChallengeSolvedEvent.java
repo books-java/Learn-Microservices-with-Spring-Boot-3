@@ -1,5 +1,8 @@
 package microservices.book.gamification.challenge;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Value;
 
 /*
@@ -16,7 +19,9 @@ good news is that, by using different representations of the event per domain an
 configuring the mapper to ignore unknown properties, the Gamification microservice
 would still work after such change without needing to update its event representation.
  */
-@Value
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ChallengeSolvedEvent {
     long attemptId;
     boolean correct;
