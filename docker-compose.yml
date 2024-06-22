@@ -1,50 +1,138 @@
 
 services:
-    tempo:
-        image: grafana/tempo
-        extra_hosts: ['host.docker.internal:host-gateway']
-        command: [ "-config.file=/etc/tempo.yaml" ]
-        volumes:
-            - ./docker/tempo/tempo-local.yaml:/etc/tempo.yaml:ro
-            - ./tempo-data:/tmp/tempo
-        ports:
-            - "14268"  # jaeger ingest
-            - "9411:9411" # zipkin
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '8100:80'
+  multiplication:
+      build:
+        context: ./multiplication
+        dockerfile: Dockerfile
+      environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - LOKI_HOST=http://loki:3100/loki/api/v1/push
+      depends_on:
+        - rabbitmq-dev
+        - consul-importer
+      networks:
+        - multiplication-microservices
+  gamification:
+      build:
+        context: ./gamification
+        dockerfile: Dockerfile
+      environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - LOKI_HOST=http://loki:3100/loki/api/v1/push
+      depends_on:
+        - rabbitmq-dev
+        - consul-importer
+      networks:
+        - multiplication-microservices
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - '8000:8000'
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - LOKI_HOST=http://loki:3100/loki/api/v1/push
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8100
+    depends_on:
+      - rabbitmq-dev
+      - consul-importer
+    networks:
+      - multiplication-microservices
 
-    loki:
-        image: grafana/loki
-        extra_hosts: ['host.docker.internal:host-gateway']
-        command: [ "-config.file=/etc/loki/local-config.yaml" ]
-        ports:
-            - "3100:3100"                                   # loki needs to be exposed so it receives logs
-        environment:
-            - JAEGER_AGENT_HOST=tempo
-            - JAEGER_ENDPOINT=http://tempo:14268/api/traces # send traces to Tempo
-            - JAEGER_SAMPLER_TYPE=const
-            - JAEGER_SAMPLER_PARAM=1
+  consul-importer:
+    build:
+      context: ./docker/consul
+      dockerfile: Dockerfile
+    depends_on:
+      - consul-dev
+    #volumes:
+      #- ./docker/consul/consul-kv-docker.json:/usr/src/consul/consul-kv-docker.json
+    networks:
+      - multiplication-microservices
+  consul-dev:
+    image: hashicorp/consul
+    container_name: consul
+    ports:
+      - '8500:8500'
+      - '8600:8600/udp'
+    command: 'agent -dev -node=learnmicro -client=0.0.0.0 -log-level=INFO'
+    networks:
+      - multiplication-microservices
 
-    prometheus:
-        image: prom/prometheus
-        extra_hosts: ['host.docker.internal:host-gateway']
-        command:
-            - --enable-feature=exemplar-storage
-            - --config.file=/etc/prometheus/prometheus.yml
-        volumes:
-            - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-        ports:
-            - "9090:9090"
+  rabbitmq-dev:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - multiplication-microservices
 
-    grafana:
-        image: grafana/grafana
-        extra_hosts: ['host.docker.internal:host-gateway']
-        volumes:
-            - ./docker/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
-            - ./docker/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
-        environment:
-            - GF_AUTH_ANONYMOUS_ENABLED=true
-            - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-            - GF_AUTH_DISABLE_LOGIN_FORM=true
-        ports:
-            - "3000:3000"
+  tempo:
+    image: grafana/tempo
+    container_name: tempo
+    extra_hosts: ['host.docker.internal:host-gateway']
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+        - ./docker/tempo/tempo-local.yaml:/etc/tempo.yaml:ro
+        - ./tempo-data:/tmp/tempo
+    ports:
+        - "14268"  # jaeger ingest
+        - "9411:9411" # zipkin
+    networks:
+      - multiplication-microservices
+  loki:
+    image: grafana/loki
+    container_name: loki
+    extra_hosts: ['host.docker.internal:host-gateway']
+    command: [ "-config.file=/etc/loki/local-config.yaml" ]
+    ports:
+        - "3100:3100"                                   # loki needs to be exposed so it receives logs
+    environment:
+        - JAEGER_AGENT_HOST=tempo
+        - JAEGER_ENDPOINT=http://tempo:14268/api/traces # send traces to Tempo
+        - JAEGER_SAMPLER_TYPE=const
+        - JAEGER_SAMPLER_PARAM=1
+    networks:
+      - multiplication-microservices
+  prometheus:
+    image: prom/prometheus
+    extra_hosts: ['host.docker.internal:host-gateway']
+    command:
+        - --enable-feature=exemplar-storage
+        - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+        - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+        - "9090:9090"
+    networks:
+      - multiplication-microservices
+  grafana:
+    image: grafana/grafana
+    extra_hosts: ['host.docker.internal:host-gateway']
+    volumes:
+        - ./docker/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+        - ./docker/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    environment:
+        - GF_AUTH_ANONYMOUS_ENABLED=true
+        - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+        - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+        - "3000:3000"
+    networks:
+      - multiplication-microservices
+networks:
+  multiplication-microservices:
+    driver: bridge
 # Prometheus: http://localhost:9090/
 # Grafana: http://localhost:3000/

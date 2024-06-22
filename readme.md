@@ -119,30 +119,36 @@ challenge.
 * Java (we use Java 17)
 * Spring boot 3,Spring 6
 * Maven 3
-
+# Deploy
+# docker profile 
+spring:
+  rabbitmq:
+    host: rabbitmq
+  cloud:
+    consul: 
+      discovery: 
+        instance-id: ${spring.application.name}-${random.int(1000)}
+management:
+  zipkin:
+    tracing:
+      endpoint: http://tempo:9411/api/v2/spans
+## export consul config
+consul kv export config/ > consul-kv-docker.json
+cd docker\consul
+docker exec -d consul consul kv export config/ > consul-kv-docker.json
 # Run
-RabbitMQ 
-docker run -d --hostname multiplication-rabbit --name multiplication-rabbit -p 5672:5672  -p 15672:15672  rabbitmq:3-management
+Start 
+docker-compose up -d  
+docker-compose up -d --scale multiplication=2 --scale gamification=2
 
-Consul
-docker run -d -p 8500:8500 -p 8600:8600/udp  --name=multiplication-consul  hashicorp/consul
-
-cd .\multiplication\     
-./mvnw spring-boot:run
-
-cd .\gamification\
-./mvnw spring-boot:run
-
-cd .\gateway\
-./mvnw spring-boot:run
-
-cd .\frontend\
-npm install
-npm start
+Stop and remove
+docker-compose down -v
 
 # URLS
 Consul
 http://localhost:8500/
+Graphana
+http://localhost:3000/
 RabbitMQ 
 http://localhost:15672/
 user/pass:guest/guest
@@ -151,7 +157,7 @@ DB test
 http://localhost:8080/h2-console
 
 Fronend
-http://localhost:3000/
+http://localhost:8100/
 
 # Testing
 Consul
