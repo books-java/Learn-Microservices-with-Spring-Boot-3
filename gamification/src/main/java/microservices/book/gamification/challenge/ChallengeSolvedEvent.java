@@ -10,7 +10,8 @@ import lombok.Value;
 fields. For instance, you don’t need the userAlias for the Gamification’s business
 logic, so you could remove it from the consumed event. Since Spring Boot configures
 the ObjectMapper to ignore unknown properties by default, that strategy would work
-without needing to configure anything else. Not sharing the code of this class across
+without needing to configure anything else. 
+Not sharing the code of this class across
 microservices is a good practice because it also allows for loose coupling, backward
 compatibility, and independent deployments. Imagine that the Multiplication
 microservice would evolve and store extra data, for example, a third factor for harder

@@ -1,5 +1,13 @@
 {
     "java.project.sourcePaths": [],
     "java.compile.nullAnalysis.mode": "automatic",
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:multiplication-microservices}/multiplication/db/multiplication-db.mv.db",
+            "name": "multiplication"
+        }
+    ]
 }

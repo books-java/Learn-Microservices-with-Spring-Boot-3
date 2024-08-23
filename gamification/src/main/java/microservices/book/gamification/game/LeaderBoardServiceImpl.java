@@ -19,7 +19,14 @@ class LeaderBoardServiceImpl implements LeaderBoardService {
         // Get score only
         List<LeaderBoardRow> scoreOnly = scoreRepository.findFirst10();
         // Combine with badges
-        // this code used the withBadges method to copy an immutable object with a new value
+        /*
+         * this code used the withBadges method to copy an immutable object with a new
+         * value
+         * The first time you generate the leaderboard, all rows have an empty list of
+         * badges. When you collect the badges, you can replace (using stream’s map)
+         * each object
+         * with a copy with the corresponding badge list
+         */
         return scoreOnly
                 .stream()
                 .map(row -> {

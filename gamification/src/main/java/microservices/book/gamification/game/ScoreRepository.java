@@ -11,7 +11,8 @@ import java.util.Optional;
 
 /**
  * Handles CRUD operations with ScoreCards and other related score queries
- * For scorecards, you need other query types. There are three requirements thus far.
+ * For scorecards, you need other query types. There are three requirements thus
+ * far.
  * 1. Calculate the total score of a user.
  * 2. Get a list of users with the highest score, ordered, as
  * LeaderBoardRow objects.
@@ -19,12 +20,22 @@ import java.util.Optional;
  */
 public interface ScoreRepository extends CrudRepository<ScoreCard, Long> {
     /**
+     * For scorecards, you need other query types. There are three requirements thus
+     * far.
+     * 1. Calculate the total score of a user.
+     * 2. Get a list of users with the highest score, ordered, as LeaderBoardRow objects.
+     * 3. Read all ScoreCard records by user ID.
+     * 
      * Gets the total score for a given user: the sum of the scores of all
      * their ScoreCards.
-     * Unfortunately, Spring Data JPA’s query methods don’t support aggregations. The
-     * good news is that JPQL, the JPA Query Language, does support them, so you can use
-     * standard syntax to keep your code as database-agnostic as possible. You can get the total
+     * Unfortunately, Spring Data JPA’s query methods don’t support aggregations.
+     * The
+     * good news is that JPQL, the JPA Query Language, does support them, so you can
+     * use
+     * standard syntax to keep your code as database-agnostic as possible. You can
+     * get the total
      * score for a given user with this query:
+     * 
      * @param userId the id of the user
      * @return the total score for the user, empty if the user doesn't exist
      */
@@ -35,8 +46,10 @@ public interface ScoreRepository extends CrudRepository<ScoreCard, Long> {
      * Retrieves a list of {@link LeaderBoardRow}s representing the Leader Board
      * of users and their total score.
      * In JPQL, you can use the constructors available in
-     * your Java classes. What you do in this example is an aggregation based on the total score,
-     * and you construct LeaderBoardRow objects using the two-argument constructor you
+     * your Java classes. What you do in this example is an aggregation based on the
+     * total score,
+     * and you construct LeaderBoardRow objects using the two-argument constructor
+     * you
      * defined (which sets an empty list of badges)
      *
      * @return the leader board, sorted by highest score first.

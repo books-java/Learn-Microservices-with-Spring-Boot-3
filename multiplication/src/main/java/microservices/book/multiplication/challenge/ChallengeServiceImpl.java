@@ -66,6 +66,50 @@ public class ChallengeServiceImpl implements ChallengeService {
          * integrity (you
          * want to always have a score for every sent attempt)
          */
+        /*
+         * if the broker is down the attempt will be stored even though you got an error
+         * response
+         * HTTP/1.1 500
+         * This is a bad practice because the API
+         * client doesn’t know the result of the challenge, so it can’t display a proper
+         * message. Yet
+         * the challenge has been saved. However, it’s the expected outcome provided
+         * that your
+         * code persists with the object before trying to send the message to the
+         * broker.
+         * Instead, you could treat the whole logic included in the verifyAttempt
+         * service
+         * method as a transaction. A database transaction can be rolled back (not
+         * executed).
+         * That’s what you want if you get an error even after calling the save method
+         * in the
+         * repository. Doing this is easy with the Spring framework since you just need
+         * to add a
+         * Jakarta Transactions annotation to your code,
+         * jakarta.transaction.Transactional.
+         * 
+         * @Transactional
+         * 
+         * @Override
+         * public ChallengeAttempt verifyAttempt(ChallengeAttemptDTO attemptDTO) {
+         * }
+         * If there is an exception in a method annotated with @Transactional, the
+         * transaction will be rolled back. If you need all your methods within a given
+         * service to be
+         * transactional, you can add this annotation at the class level instead
+         */
+        /*
+         * You can try the same scenario steps after applying this change. Build and
+         * restart the
+         * Multiplication microservice and send a new attempt while the broker is down,
+         * this time
+         * with a different alias. If you run the corresponding query to see if the
+         * attempt was stored,
+         * you’ll find that this time it isn’t. Spring rolls back the database operation
+         * due to the
+         * thrown exception, so it’s never performed.
+         * 
+         */
         challengeEventPub.challengeSolved(storedAttempt);
 
         return storedAttempt;

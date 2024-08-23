@@ -93,6 +93,7 @@ public class AMQPConfiguration {
     @Bean
     public Binding correctAttemptsBinding(final Queue gamificationQueue,
             final TopicExchange attemptsExchange) {
+        // this routing key is used as a filter to receive only correct attempts
         return BindingBuilder.bind(gamificationQueue)
                 .to(attemptsExchange)
                 .with("attempt.correct");

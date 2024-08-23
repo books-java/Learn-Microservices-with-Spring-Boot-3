@@ -6,6 +6,24 @@ services:
       dockerfile: Dockerfile
     ports:
       - '8100:80'
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - '8000:8000'
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - LOKI_HOST=http://loki:3100/loki/api/v1/push
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8100
+    depends_on:
+      - rabbitmq-dev
+      - consul-importer
+    networks:
+      - multiplication-microservices
+
   multiplication:
       build:
         context: ./multiplication
@@ -32,22 +50,6 @@ services:
         - consul-importer
       networks:
         - multiplication-microservices
-  gateway:
-    build:
-      context: ./gateway
-      dockerfile: Dockerfile
-    ports:
-      - '8000:8000'
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_CLOUD_CONSUL_HOST=consul
-      - LOKI_HOST=http://loki:3100/loki/api/v1/push
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8100
-    depends_on:
-      - rabbitmq-dev
-      - consul-importer
-    networks:
-      - multiplication-microservices
 
   consul-importer:
     build:
@@ -105,6 +107,7 @@ services:
         - JAEGER_SAMPLER_PARAM=1
     networks:
       - multiplication-microservices
+
   prometheus:
     image: prom/prometheus
     extra_hosts: ['host.docker.internal:host-gateway']
@@ -117,6 +120,7 @@ services:
         - "9090:9090"
     networks:
       - multiplication-microservices
+
   grafana:
     image: grafana/grafana
     extra_hosts: ['host.docker.internal:host-gateway']
@@ -131,6 +135,7 @@ services:
         - "3000:3000"
     networks:
       - multiplication-microservices
+      
 networks:
   multiplication-microservices:
     driver: bridge

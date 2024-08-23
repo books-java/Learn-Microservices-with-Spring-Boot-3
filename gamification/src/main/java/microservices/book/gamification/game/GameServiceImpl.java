@@ -21,9 +21,29 @@ import java.util.stream.Collectors;
 public class GameServiceImpl implements GameService {
         private final ScoreRepository scoreRepository;
         private final BadgeRepository badgeRepository;
+        /*
+        Since you use constructor injection in GameServiceImpl with a list of 
+BadgeProcessor objects, Spring will find all the beans that implement this interface and 
+pass them to you. This is a flexible way of extending your game without interfering with 
+other existing logic. You just need to add new BadgeProcessor implementations and 
+annotate them with @Component so they are loaded in the Spring context.
+
+        */
         // Spring injects all the @Component beans in this list
         private final List<BadgeProcessor> badgeProcessors;
 
+        /*
+         * The output after processing the attempt is a GameResult object, defined
+         * within the
+         * interface. It groups the score obtained from that attempt together with any
+         * new badge
+         * that the user may get. You could also consider not returning anything since
+         * it’ll be the
+         * leaderboard logic showing the results. However, it’s better to have a
+         * response from your
+         * method so you can test it.
+         * 
+         */
         @Override
         public GameResult newAttemptForUser(ChallengeSolvedEvent challenge) {
                 /*

@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Configuration;
  * separate
  * configuration file for AMQP. The Spring module has a convenient builder for
  * this, called
- * Chapter 7 Event-Driven Architectures271
  * ExchangeBuilder. You add a bean of the topic type you want to declare in the
  * broker.
  * Besides, you’ll use this configuration class to switch the predefined
@@ -75,6 +74,22 @@ public class AMQPConfiguration {
      */
     @Bean
     public Jackson2JsonMessageConverter producerJackson2MessageConverter() {
+        /*
+         * The Jackson2JsonMessageConverter uses a Jackson’s ObjectMapper preconfigured
+         * in Spring AMQP. This bean will be used then by the RabbitTemplate
+         * implementation,
+         * the class that serializes and sends objects as AMQP messages to the broker.
+         * On the
+         * subscriber side, you can benefit from the popularity of the JSON format to
+         * deserialize
+         * the contents using any programming language. You could also use your own
+         * object
+         * representation and ignore properties you don’t need on the consumer side,
+         * thereby
+         * reducing the coupling between microservices. If the publisher includes new
+         * fields in the
+         * payload, the subscribers don’t need to change anything
+         */
         return new Jackson2JsonMessageConverter();
     }
 }
